@@ -101,7 +101,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 	const modalWindow = document.querySelector('.modal');
 	const contactUsBtns = document.querySelectorAll('[data-modal]');
-	const modalClose = document.querySelector('[data-close]');
 
 	function openModal() {
 		modalWindow.classList.add('show', 'fade-fast');
@@ -120,10 +119,11 @@ window.addEventListener('DOMContentLoaded', () => {
 		document.body.style.overflow = '';
 	}
 
-	modalClose.addEventListener('click', closeModal);
-
 	modalWindow.addEventListener('click', (event) => {
-		if (event.target === modalWindow) {
+		if (
+			event.target === modalWindow ||
+			event.target.getAttribute('data-close') == ''
+		) {
 			closeModal();
 		}
 	});
@@ -134,7 +134,7 @@ window.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 
-	// const modalTimerId = setTimeout(openModal, 5000);
+	const modalTimerId = setTimeout(openModal, 50000);
 
 	function showModalByScroll() {
 		if (
@@ -217,4 +217,227 @@ window.addEventListener('DOMContentLoaded', () => {
 		21,
 		'.menu .container'
 	).render();
+
+	// Forms
+
+	const forms = document.querySelectorAll('form');
+	const message = {
+		loading: 'img/form/spinner.svg',
+		success: 'Спасибо! Скоро мы с Вами свяжемся.',
+		failure: 'Что-то пошло не так...',
+	};
+
+	forms.forEach((itemForm) => {
+		postData(itemForm);
+	});
+
+	function postData(form) {
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			const statusMessage = document.createElement('img');
+			statusMessage.src = message.loading;
+			statusMessage.style.cssText = `
+				display: block;
+				margin: 0 auto;
+			`;
+			form.insertAdjacentElement('afterend', statusMessage);
+
+			const request = new XMLHttpRequest();
+
+			request.open('POST', 'server.php');
+			request.setRequestHeader('Content-type', 'application/json');
+
+			const formData = new FormData(form);
+
+			const object = {};
+			formData.forEach(function (value, key) {
+				object[key] = value;
+			});
+
+			const json = JSON.stringify(object);
+
+			request.send(json);
+
+			request.addEventListener('load', () => {
+				if (request.status === 200) {
+					console.log(request.response);
+					showThanksModal(message.success);
+					form.reset();
+					statusMessage.remove();
+				} else {
+					showThanksModal(message.failure);
+				}
+			});
+		});
+	}
+
+	function showThanksModal(message) {
+		const prevModalDialog = document.querySelector('.modal__dialog');
+		prevModalDialog.classList.add('hide');
+		openModal();
+
+		const thanksModal = document.createElement('div');
+		thanksModal.classList.add('modal__dialog');
+		thanksModal.innerHTML = `
+		<div class="modal__content">
+			<div class="modal__close" data-close>&times;</div>
+			<div class="modal__title">${message}</div>
+		</div>
+		`;
+
+		document.querySelector('.modal').append(thanksModal);
+		setTimeout(() => {
+			thanksModal.remove();
+			prevModalDialog.classList.add('show');
+			prevModalDialog.classList.remove('hide');
+			closeModal();
+		}, 4000);
+	}
 });
+<<<<<<< HEAD
+=======
+
+//=====================================================================================================
+
+// function User(name, id) {
+// 	this.name = name;
+// 	this.id = id;
+// 	this.human = true;
+// 	this.hello = function () {
+// 		console.log(`Hello, ${this.name}`);
+// 	};
+// }
+
+// User.prototype.exit = function () {
+// 	console.log(`Пользователь ${this.name} ушел`);
+// };
+
+// const ivan = new User('Ivan', 28);
+// const alex = new User('Alex', 20);
+
+// ivan.exit();
+
+// ivan.hello();
+// alex.hello();
+
+// console.log(ivan);
+// console.log(alex);
+
+//========================================================================
+
+// function showThis(a, b) {
+// 	console.log(this);
+
+// 	function sum() {
+// 		console.log(this);
+// 		return a + b;
+// 	}
+
+// 	console.log(sum());
+// }
+
+// showThis(4, 5);
+
+// const obj = {
+// 	a: 20,
+// 	b: 15,
+// 	sum: function () {
+// 		function shout() {
+// 			console.log(this);
+// 		}
+// 		shout();
+// 	},
+// };
+
+// obj.sum();
+
+// function User(name, id) {
+// 	this.name = name;
+// 	this.id = id;
+// 	this.human = true;
+// 	this.hello = function () {
+// 		console.log('Hello! ' + this.name);
+// 	};
+// }
+
+// let ivan = new User('Ivan', 23);
+
+function sayName() {
+	console.log(this);
+	console.log(this.name);
+}
+
+const user = {
+	name: 'John',
+};
+
+sayName.call(user); // во внутрь мы передаем контекст вызова,
+// который мы хотим передать в эту функцию.
+
+// тоже самое будет и с apply.
+
+sayName.apply(user);
+
+function count(num) {
+	return this * num; // здесь не хватает контекста вызова
+}
+
+const double = count.bind(2);
+console.log(double(3));
+console.log(double(13));
+
+// В эту переменную мы помещаем новую функцию!
+// Число 2 переходит в this!
+
+//Дабл - это новая функция, у которой есть привязанный контекст.
+
+// const newBtn = document.querySelector('.this_btn');
+
+// newBtn.addEventListener('click', function () {
+// 	console.log(this); // контекст вызова - сам элемент, на котором произошло событие
+// 	this.style.backgroundColor = 'red';
+// });
+
+//=========================================================================
+
+class Rectangle {
+	constructor(height, width) {
+		this.height = height;
+		this.width = width;
+	}
+
+	calcArea() {
+		return this.height * this.width;
+	}
+}
+
+class ColoredRectangleWithText extends Rectangle {
+	constructor(height, width, text, bgColor) {
+		super(height, width);
+		this.text = text;
+		this.bgColor = bgColor;
+	}
+
+	showMyProps() {
+		console.log(`Текст: ${this.text}, цвет: ${this.bgColor}`);
+	}
+}
+
+const div = new ColoredRectangleWithText(25, 10, 'Hello World!', 'red');
+div.showMyProps();
+console.log(div.calcArea());
+// const square = new Rectangle(10, 10);
+// const long = new Rectangle(20, 100);
+
+// console.log(square.calcArea());
+// console.log(long.calcArea());
+
+//====================================================================================================
+
+const log = function (a, b, ...rest) {
+	console.log(a, b, rest);
+};
+
+log('basic', 'rest', 'operator', 'usage', 'for sure!');
+>>>>>>> 14d718f4a06ab2069f361fb884da5bf952936bc0
