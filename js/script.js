@@ -355,8 +355,6 @@ window.addEventListener('DOMContentLoaded', () => {
 		plusSlides(1);
 	});
 });
-<<<<<<< HEAD
-=======
 
 //=====================================================================================================
 
@@ -500,4 +498,3 @@ const log = function (a, b, ...rest) {
 };
 
 log('basic', 'rest', 'operator', 'usage', 'for sure!');
->>>>>>> 14d718f4a06ab2069f361fb884da5bf952936bc0
