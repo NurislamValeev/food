@@ -189,32 +189,41 @@ window.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	new MenuCard(
-		'img/tabs/vegy.jpg',
-		'vegy',
-		'Меню "Фитнес"',
-		'Меню "Фитнес" - это новый подход к приготовлению блюд: большесвежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-		9,
-		'.menu .container'
-	).render();
+	const getResource = async (url) => {
+		const res = await fetch(url);
 
-	new MenuCard(
-		'img/tabs/elite.jpg',
-		'elite',
-		'Меню “Премиум”',
-		'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-		14,
-		'.menu .container'
-	).render();
+		if (!res.ok) {
+			throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+		}
 
-	new MenuCard(
-		'img/tabs/post.jpg',
-		'post',
-		'Меню "Постное"',
-		'“Постное меню” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения. Полная гармония с собой и природой в каждом элементе! Все будет Ом!',
-		21,
-		'.menu .container'
-	).render();
+		return await res.json();
+	};
+
+	// getResource('http://localhost:3000/menu').then((data) => {
+	// data.forEach(({ img, altimg, title, descr, price }) => {
+	// 	new MenuCard(
+	// 		img,
+	// 		altimg,
+	// 		title,
+	// 		descr,
+	// 		price,
+	// 		'.menu .container'
+	// 	).render();
+	// });
+	// });
+
+	axios.get('http://localhost:3000/menu').then((data) => {
+		data.data.forEach(({ img, altimg, title, descr, price }) => {
+			new MenuCard(
+				img,
+				altimg,
+				title,
+				descr,
+				price,
+				'.menu .container'
+			).render();
+		});
+	});
 
 	// Forms
 
@@ -225,11 +234,21 @@ window.addEventListener('DOMContentLoaded', () => {
 		failure: 'Что-то пошло не так...',
 	};
 
-	forms.forEach((itemForm) => {
-		postData(itemForm);
+	forms.forEach((item) => {
+		bindPostData(item);
 	});
 
-	function postData(form) {
+	const postData = async (url, data) => {
+		const res = await fetch(url, {
+			method: 'POST',
+			headers: { 'Content-type': 'application/json' },
+			body: data,
+		});
+
+		return await res.json();
+	};
+
+	function bindPostData(form) {
 		form.addEventListener('submit', (e) => {
 			e.preventDefault();
 
@@ -243,17 +262,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 			const formData = new FormData(form);
 
-			const object = {};
-			formData.forEach(function (value, key) {
-				object[key] = value;
-			});
+			const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-			fetch('server.php', {
-				method: 'POST',
-				headers: { 'Content-type': 'application/json' },
-				body: JSON.stringify(object),
-			})
-				.then((data) => data.text())
+			postData('http://localhost:3000/requests', json)
 				.then((data) => {
 					console.log(data);
 					showThanksModal(message.success);
@@ -291,15 +302,58 @@ window.addEventListener('DOMContentLoaded', () => {
 		}, 4000);
 	}
 
-	// fetch('https://jsonplaceholder.typicode.com/posts', {
-	// 	method: 'POST',
-	// 	body: JSON.stringify({ name: 'Alex' }),
-	// 	headers: {
-	// 		'Content-type': 'application/json',
-	// 	},
-	// })
-	// 	.then((response) => response.json())
-	// 	.then((json) => console.log(json));
+	// Slider
+
+	const slides = document.querySelectorAll('.offer__slide');
+	const prev = document.querySelector('.offer__slider-prev');
+	const next = document.querySelector('.offer__slider-next');
+
+	const current = document.querySelector('#current');
+	const total = document.querySelector('#total');
+
+	let slideIndex = 1;
+
+	showSlides(slideIndex);
+
+	if (slides.length < 10) {
+		total.textContent = `0${slides.length}`;
+	} else {
+		total.textContent = slides.length;
+	}
+
+	function showSlides(n) {
+		if (n > slides.length) {
+			slideIndex = 1;
+		}
+
+		if (n < 1) {
+			slideIndex = slides.length;
+		}
+
+		slides.forEach((item) => item.classList.add('hide'));
+		slides.forEach((item) => item.classList.remove('show', 'fade'));
+
+		slides[slideIndex - 1].classList.add('show', 'fade');
+		slides[slideIndex - 1].classList.remove('hide');
+
+		if (slides.length < 10) {
+			current.textContent = `0${slideIndex}`;
+		} else {
+			current.textContent = slideIndex;
+		}
+	}
+
+	function plusSlides(n) {
+		showSlides((slideIndex += n));
+	}
+
+	prev.addEventListener('click', () => {
+		plusSlides(-1);
+	});
+
+	next.addEventListener('click', () => {
+		plusSlides(1);
+	});
 });
 
 //=====================================================================================================
