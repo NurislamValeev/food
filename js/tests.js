@@ -98,15 +98,15 @@ const test = (time) => {
 
 // console.log(res);
 
-const obj = {
-	ivan: 'person',
-	ann: 'person',
-	dog: 'animal',
-	cat: 'animal',
-};
+// const obj = {
+// 	ivan: 'person',
+// 	ann: 'person',
+// 	dog: 'animal',
+// 	cat: 'animal',
+// };
 
-const newArr = Object.entries(obj)
-	.filter((item) => item[1] === 'person')
-	.map((item) => item[0]);
+// const newArr = Object.entries(obj)
+// 	.filter((item) => item[1] === 'person')
+// 	.map((item) => item[0]);
 
-console.log(newArr);
+// console.log(newArr);

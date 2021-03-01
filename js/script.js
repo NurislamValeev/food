@@ -1,5 +1,63 @@
 'use strict';
 
+class User {
+	constructor(name, age) {
+		this.name = name;
+		this._age = age;
+	}
+
+	say() {
+		console.log(`Имя пользователя: ${this.name}, возраст ${this._age}`);
+	}
+
+	get age() {
+		return this._age;
+	}
+
+	set age(age) {
+		if (typeof age === 'number' && age > 0 && age < 110) {
+			this._age = age;
+		} else {
+			console.log('Недопустимое значение!');
+		}
+	}
+}
+
+const ivan = new User('Ivan', 27);
+console.log(ivan.age); // getter
+ivan.age = 99; // setter
+console.log(ivan.age); // getter
+
+ivan.say();
+
+// function findNextSquare(sq) {
+// 	let sqrt = Math.sqrt(sq);
+// 	if (Number.isInteger(sqrt) && sqrt ** 2 === sq) {
+// 		sqrt += 1;
+// 		return sqrt ** 2;
+// 	} else {
+// 		return -1;
+// 	}
+// }
+
+// findNextSquare(25);
+
+// const person = {
+// 	name: 'Alex',
+// 	age: 25,
+
+// 	get userAge() {
+// 		return this.age;
+// 	},
+
+// 	set userAge(num) {
+// 		this.age = num;
+// 	},
+// };
+
+// console.log((person.userAge = 30));
+// console.log(person.userAge);
+
 window.addEventListener('DOMContentLoaded', () => {
 	// Tabs
 
@@ -311,52 +369,245 @@ window.addEventListener('DOMContentLoaded', () => {
 	const current = document.querySelector('#current');
 	const total = document.querySelector('#total');
 
-	let slideIndex = 1;
+	const slidesWrapper = document.querySelector('.offer__slider-wrapper');
+	const slidesField = document.querySelector('.offer__slider-inner');
+	const width = window.getComputedStyle(slidesWrapper).width;
 
-	showSlides(slideIndex);
+	let slideIndex = 1;
+	let offset = 0;
 
 	if (slides.length < 10) {
 		total.textContent = `0${slides.length}`;
+		current.textContent = `0${slideIndex}`;
 	} else {
 		total.textContent = slides.length;
+		current.textContent = slideIndex;
 	}
 
-	function showSlides(n) {
-		if (n > slides.length) {
+	slidesField.style.width = 100 * slides.length + '%';
+	slidesField.style.display = 'flex';
+	slidesField.style.transition = '0.5s all';
+
+	slidesWrapper.style.overflow = 'hidden';
+
+	slides.forEach((slide) => {
+		slide.style.width = width;
+	});
+
+	function deleteNotDigits(w) {
+		w = +w.replace(/\D/g, '');
+		return w;
+	}
+
+	next.addEventListener('click', () => {
+		if (offset == deleteNotDigits(width) * (slides.length - 1)) {
+			offset = 0;
+		} else {
+			offset += deleteNotDigits(width);
+		}
+
+		slidesField.style.transform = `translateX(-${offset}px)`;
+
+		if (slideIndex == slides.length) {
 			slideIndex = 1;
+		} else {
+			slideIndex++;
 		}
-
-		if (n < 1) {
-			slideIndex = slides.length;
-		}
-
-		slides.forEach((item) => item.classList.add('hide'));
-		slides.forEach((item) => item.classList.remove('show', 'fade'));
-
-		slides[slideIndex - 1].classList.add('show', 'fade');
-		slides[slideIndex - 1].classList.remove('hide');
 
 		if (slides.length < 10) {
 			current.textContent = `0${slideIndex}`;
 		} else {
 			current.textContent = slideIndex;
 		}
-	}
-
-	function plusSlides(n) {
-		showSlides((slideIndex += n));
-	}
+	});
 
 	prev.addEventListener('click', () => {
-		plusSlides(-1);
+		if (offset == 0) {
+			offset = deleteNotDigits(width) * (slides.length - 1);
+		} else {
+			offset -= deleteNotDigits(width);
+		}
+
+		slidesField.style.transform = `translateX(-${offset}px)`;
+
+		if (slideIndex == 1) {
+			slideIndex = slides.length;
+		} else {
+			slideIndex--;
+		}
+
+		if (slides.length < 10) {
+			current.textContent = `0${slideIndex}`;
+		} else {
+			current.textContent = slideIndex;
+		}
 	});
 
-	next.addEventListener('click', () => {
-		plusSlides(1);
-	});
+	// Калькулятор
+
+	const result = document.querySelector('.calculating__result span');
+
+	let sex, height, weight, age, ratio;
+
+	if (localStorage.getItem('sex')) {
+		sex = localStorage.getItem('sex');
+	} else {
+		sex = 'female';
+		localStorage.setItem('sex', 'female');
+	}
+
+	if (localStorage.getItem('ratio')) {
+		ratio = localStorage.getItem('ratio');
+	} else {
+		ratio = 1.375;
+		localStorage.setItem('ratio', 1.375);
+	}
+
+	function initLocalSettings(selector, activeClass) {
+		const elements = document.querySelectorAll(selector);
+
+		elements.forEach((elem) => {
+			elem.classList.remove(activeClass);
+
+			if (elem.getAttribute('id') === localStorage.getItem('sex')) {
+				elem.classList.add(activeClass);
+			}
+
+			if (elem.getAttribute('data-ratio') === localStorage.getItem('ratio')) {
+				elem.classList.add(activeClass);
+			}
+		});
+	}
+
+	initLocalSettings('#gender div', 'calculating__choose-item_active');
+	initLocalSettings(
+		'.calculating__choose_big div',
+		'calculating__choose-item_active'
+	);
+
+	function calcTotal() {
+		if (!sex || !height || !weight || !age || !ratio) {
+			result.textContent = ' _ _ _ _ ';
+			return;
+		}
+
+		if (sex === 'female') {
+			result.textContent = Math.round(
+				(447.6 + 9.2 * weight + 3.1 * height - 4.3 * age) * ratio
+			);
+		} else {
+			result.textContent = Math.round(
+				(88.36 + 13.4 * weight + 4.8 * height - 5.7 * age) * ratio
+			);
+		}
+	}
+
+	calcTotal();
+
+	function getStaticInfo(selector, activeClass) {
+		const elements = document.querySelectorAll(selector);
+
+		elements.forEach((elem) => {
+			elem.addEventListener('click', (e) => {
+				if (e.target.getAttribute('data-ratio')) {
+					ratio = +e.target.getAttribute('data-ratio');
+					localStorage.setItem('ratio', +e.target.getAttribute('data-ratio'));
+				} else {
+					sex = e.target.getAttribute('id');
+					localStorage.setItem('sex', e.target.getAttribute('id'));
+				}
+
+				elements.forEach((elem) => {
+					elem.classList.remove(activeClass);
+				});
+
+				e.target.classList.add(activeClass);
+
+				calcTotal();
+			});
+		});
+	}
+
+	getStaticInfo('#gender div', 'calculating__choose-item_active');
+	getStaticInfo(
+		'.calculating__choose_big div',
+		'calculating__choose-item_active'
+	);
+
+	function getDynamicInfo(selector) {
+		const input = document.querySelector(selector);
+
+		input.addEventListener('input', () => {
+			if (input.value.match(/\D/g)) {
+				input.style.border = '2px solid red';
+			} else {
+				input.style.border = '2px solid #2eb82e';
+			}
+
+			switch (input.getAttribute('id')) {
+				case 'height':
+					height = +input.value;
+					break;
+				case 'weight':
+					weight = +input.value;
+					break;
+				case 'age':
+					age = +input.value;
+					break;
+			}
+
+			calcTotal();
+		});
+	}
+
+	getDynamicInfo('#height');
+	getDynamicInfo('#weight');
+	getDynamicInfo('#age');
 });
 
 //=====================================================================================================
+
+// showSlides(slideIndex);
+
+// if (slides.length < 10) {
+// 	total.textContent = `0${slides.length}`;
+// } else {
+// 	total.textContent = slides.length;
+// }
+
+// function showSlides(n) {
+// 	if (n > slides.length) {
+// 		slideIndex = 1;
+// 	}
+
+// 	if (n < 1) {
+// 		slideIndex = slides.length;
+// 	}
+
+// 	slides.forEach((item) => item.classList.add('hide'));
+// 	slides.forEach((item) => item.classList.remove('show', 'fade'));
+
+// 	slides[slideIndex - 1].classList.add('show', 'fade');
+// 	slides[slideIndex - 1].classList.remove('hide');
+
+// 	if (slides.length < 10) {
+// 		current.textContent = `0${slideIndex}`;
+// 	} else {
+// 		current.textContent = slideIndex;
+// 	}
+// }
+
+// function plusSlides(n) {
+// 	showSlides((slideIndex += n));
+// }
+
+// prev.addEventListener('click', () => {
+// 	plusSlides(-1);
+// });
+
+// next.addEventListener('click', () => {
+// 	plusSlides(1);
+// });
 
 // function User(name, id) {
 // 	this.name = name;
@@ -421,29 +672,29 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // let ivan = new User('Ivan', 23);
 
-function sayName() {
-	console.log(this);
-	console.log(this.name);
-}
+// function sayName() {
+// 	console.log(this);
+// 	console.log(this.name);
+// }
 
-const user = {
-	name: 'John',
-};
+// const user = {
+// 	name: 'John',
+// };
 
-sayName.call(user); // во внутрь мы передаем контекст вызова,
+// sayName.call(user); // во внутрь мы передаем контекст вызова,
 // который мы хотим передать в эту функцию.
 
 // тоже самое будет и с apply.
 
-sayName.apply(user);
+// sayName.apply(user);
 
-function count(num) {
-	return this * num; // здесь не хватает контекста вызова
-}
+// function count(num) {
+// 	return this * num; // здесь не хватает контекста вызова
+// }
 
-const double = count.bind(2);
-console.log(double(3));
-console.log(double(13));
+// const double = count.bind(2);
+// console.log(double(3));
+// console.log(double(13));
 
 // В эту переменную мы помещаем новую функцию!
 // Число 2 переходит в this!
@@ -459,32 +710,32 @@ console.log(double(13));
 
 //=========================================================================
 
-class Rectangle {
-	constructor(height, width) {
-		this.height = height;
-		this.width = width;
-	}
+// class Rectangle {
+// 	constructor(height, width) {
+// 		this.height = height;
+// 		this.width = width;
+// 	}
 
-	calcArea() {
-		return this.height * this.width;
-	}
-}
+// 	calcArea() {
+// 		return this.height * this.width;
+// 	}
+// }
 
-class ColoredRectangleWithText extends Rectangle {
-	constructor(height, width, text, bgColor) {
-		super(height, width);
-		this.text = text;
-		this.bgColor = bgColor;
-	}
+// class ColoredRectangleWithText extends Rectangle {
+// 	constructor(height, width, text, bgColor) {
+// 		super(height, width);
+// 		this.text = text;
+// 		this.bgColor = bgColor;
+// 	}
 
-	showMyProps() {
-		console.log(`Текст: ${this.text}, цвет: ${this.bgColor}`);
-	}
-}
+// 	showMyProps() {
+// 		console.log(`Текст: ${this.text}, цвет: ${this.bgColor}`);
+// 	}
+// }
 
-const div = new ColoredRectangleWithText(25, 10, 'Hello World!', 'red');
-div.showMyProps();
-console.log(div.calcArea());
+// const div = new ColoredRectangleWithText(25, 10, 'Hello World!', 'red');
+// div.showMyProps();
+// console.log(div.calcArea());
 // const square = new Rectangle(10, 10);
 // const long = new Rectangle(20, 100);
 
@@ -493,8 +744,8 @@ console.log(div.calcArea());
 
 //====================================================================================================
 
-const log = function (a, b, ...rest) {
-	console.log(a, b, rest);
-};
+// const log = function (a, b, ...rest) {
+// 	console.log(a, b, rest);
+// };
 
-log('basic', 'rest', 'operator', 'usage', 'for sure!');
+// log('basic', 'rest', 'operator', 'usage', 'for sure!');
