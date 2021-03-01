@@ -371,7 +371,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 	const slidesWrapper = document.querySelector('.offer__slider-wrapper');
 	const slidesField = document.querySelector('.offer__slider-inner');
-	const width = window.getComputedStyle(slidesWrapper).width;
+	const width = '650px';
+	console.log(width);
 
 	let slideIndex = 1;
 	let offset = 0;
